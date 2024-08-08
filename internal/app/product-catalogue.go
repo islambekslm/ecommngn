@@ -1,23 +1,34 @@
 package app
 
 import (
+	"ecommngn/internal/handlers"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"os"
 
 	"github.com/rs/zerolog"
 )
 
-type productCatalogue struct {
+type ProductCatalogue struct {
 	logger zerolog.Logger
 }
 
-func NewProductCatalogue() *productCatalogue {
-	return &productCatalogue{}
+func NewProductCatalogue() *ProductCatalogue {
+	return &ProductCatalogue{
+		logger: zerolog.New(os.Stdout).With().Timestamp().Logger(),
+	}
 }
 
-func (pc *productCatalogue) Start() {
+func (pc *ProductCatalogue) Start() {
 	fmt.Print("App started")
+	router := gin.Default()
+	handlers.RegisterOrderRoutes(router)
+	err := router.Run(":8080")
+	if err != nil {
+		pc.logger.Error().Err(err).Msg("Error starting HTTP server")
+	}
 }
 
-func (pc *productCatalogue) Stop() {
+func (pc *ProductCatalogue) Stop() {
 	fmt.Print("App stopped")
 }

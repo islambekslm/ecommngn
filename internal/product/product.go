@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type product struct {
+type Product struct {
 	ID          string
 	Name        string
 	Description string
@@ -14,20 +14,20 @@ type product struct {
 	IsActive    bool
 }
 
-func (p *product) Activate() {
+func (p *Product) Activate() {
 	p.IsActive = true
 }
 
-func (p *product) Deactivate() {
+func (p *Product) Deactivate() {
 	p.IsActive = false
 }
 
-func (p *product) SetPrice(price float64) {
+func (p *Product) SetPrice(price float64) {
 	p.Price = price
 }
 
-func NewProduct(name, description string, price float64) *product {
-	return &product{
+func NewProduct(name, description string, price float64) *Product {
+	return &Product{
 		ID:          uuid.New().String(),
 		Name:        name,
 		Description: description,
@@ -41,9 +41,8 @@ type manager struct {
 }
 
 type Repository interface {
-	Save(product *product) error
-	Get(id string) (*product, error)
-	GetAll() ([]*product, error)
+	Save(product Product) error
+	Get(id string) (Product, error)
 	Delete(id string) error
 }
 
@@ -62,8 +61,8 @@ func (m *manager) SetPrice(id string, price float64) error {
 	return m.repo.Save(p)
 }
 
-func (m *manager) Save(product *product) error {
-	return m.repo.Save(product)
+func (m *manager) Save(product *Product) error {
+	return m.repo.Save(*product)
 }
 
 func (m *manager) Activate(id string) error {
@@ -84,27 +83,23 @@ func (m *manager) Deactivate(id string) error {
 	return m.repo.Save(p)
 }
 
-func (m *manager) Get(id string) (*product, error) {
+func (m *manager) Get(id string) (Product, error) {
 	return m.repo.Get(id)
-}
-
-func (m *manager) GetAll() ([]*product, error) {
-	return m.repo.GetAll()
 }
 
 func (m *manager) Delete(id string) error {
 	return m.repo.Delete(id)
 }
 
-func (m *manager) New(name, description string, price float64) (*product, error) {
+func (m *manager) New(name, description string, price float64) (Product, error) {
 	if price <= 0 {
-		return nil, ErrInvalidPrice
+		return Product{}, ErrInvalidPrice
 	}
 	p := NewProduct(name, description, price)
-	if err := m.repo.Save(p); err != nil {
-		return nil, err
+	if err := m.repo.Save(*p); err != nil {
+		return Product{}, err
 	}
-	return p, nil
+	return *p, nil
 }
 
 var ErrInvalidPrice = errors.New("price must be greater than 0")

@@ -18,13 +18,13 @@ func NewDB[T any]() *db[T] {
 	}
 }
 
-func (d *db[T]) Save(entity T) string {
+func (d *db[T]) Save(entity T) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
 	id := uuid.New()
 	d.data[id] = entity
-	return id.String()
+	return nil
 }
 
 func (d *db[T]) Get(id string) (T, error) {
@@ -46,16 +46,15 @@ func (d *db[T]) Get(id string) (T, error) {
 
 var ErrNotFound = errors.New("not found")
 
-func (d *db[T]) GetAll() map[uuid.UUID]T {
-	d.mu.RLock()
-	defer d.mu.RUnlock()
-
-	return d.data
-}
-
-func (d *db[T]) Delete(id uuid.UUID) {
+func (d *db[T]) Delete(id string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	delete(d.data, id)
+	uuid, err := uuid.Parse(id)
+	if err != nil {
+		return err
+	}
+
+	delete(d.data, uuid)
+	return nil
 }
